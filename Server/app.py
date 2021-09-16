@@ -30,6 +30,8 @@ class Server:
         with open('static/genres.json') as genresFile:
             self.genres = json.load(genresFile)
         
+        # Access Token Lasts 1 Hour. Therefore it is stored in a file and is reused until it expires.
+        # When it is expired, a new one is acquired.
         if os.path.isfile('static/accesstoken.txt'):
             self.loadToken()
         else:
@@ -51,6 +53,7 @@ class Server:
         with open('static/accesstoken.txt', 'w') as tokenFile:
             tokenFile.write(self.access_token)
 
+    # Decided not to use Top Tracks of An Artist because Market field is required in it and I want an international search.
     def searchRequest(self, artist):
         headers = {
             'Authorization': f'Bearer {self.access_token}',
@@ -66,7 +69,7 @@ class Server:
     def getPopularTracks(self, artist):
         searchResult = self.searchRequest(artist)
         if (searchResult.status_code != 200):
-            # Refresh Access Token And Retry
+            # Refresh Access Token And Retry If Expired
             self.access_token = self.getAccessToken()
             self.saveToken()
             searchResult = self.searchRequest(artist)
@@ -75,9 +78,15 @@ class Server:
 
         return searchResult.json().get('tracks').get('items')
     
-    def filterAndSort(self, top50):
+    def filterAndSort(self, top50, artist):
         sorted50 = sorted(top50, key=lambda item: item.get('popularity'),reverse=True)
-        return sorted50[:10]
+        # Check If Artist Name is Correct
+        filteredWrongArtists = [item for item in sorted50 if item.get('artists')[0].get('name').lower() == artist.lower()]
+        # In case if name check failed because of character mismatch.
+        if (len(filteredWrongArtists) == 0):
+            return sorted50[:10]
+        else:
+            return filteredWrongArtists[:10]
 
     def getRandomArtist(self, genre):
         genreArtists = self.genres.get(genre)
@@ -89,7 +98,7 @@ class Server:
         randomArtist = self.getRandomArtist(genre)
         if (randomArtist is None):
             return None
-        filtered10 =  self.filterAndSort(self.getPopularTracks(randomArtist))
+        filtered10 =  self.filterAndSort(self.getPopularTracks(randomArtist), randomArtist)
         return [reformatTrackJSON(item) for item in filtered10]
 
 
