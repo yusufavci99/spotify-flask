@@ -57,7 +57,7 @@ class Server:
             'Accept': 'application/json'
         }
         params = {
-            'q': artist,
+            'q': 'artist:' + artist,
             'type': 'track',
             'limit': 50
         }
@@ -90,7 +90,7 @@ class Server:
         if (randomArtist is None):
             return None
         filtered10 =  self.filterAndSort(self.getPopularTracks(randomArtist))
-        return list(map(reformatTrackJSON, filtered10))
+        return [reformatTrackJSON(item) for item in filtered10]
 
 
 server = Server()
