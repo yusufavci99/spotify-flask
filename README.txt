@@ -8,7 +8,13 @@ Server Dependencies:
 * requests
 
 I've hidden CLIEND_ID and CLIENT_SECRET in a file named usertokens.json which I didn't upload to GitHub for security reasons.
-usertokens should be put in Server/static directory. 
+usertokens.json should be put in Server/static directory. 
+
+usertokens.json format:
+{
+	"client_id":     CLIENT_ID_HERE,
+	"client_secret": CLIENT_SECRET_HERE
+} 
 
 Then, run the server from the Server directory via "python3 app.py" command.
 
